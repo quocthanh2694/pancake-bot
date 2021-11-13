@@ -1,4 +1,5 @@
 # Pancake swap bot auto buy & sell by PYTHON
+# Bot auto buy pancake on binance smart chain
 
 ## How to run
 
