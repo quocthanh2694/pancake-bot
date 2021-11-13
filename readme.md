@@ -1,4 +1,4 @@
-# Pancake swap bot auto buy
+# Pancake swap bot auto buy & sell by PYTHON
 
 ## How to run
 
