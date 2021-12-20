@@ -8,4 +8,4 @@
 
 ## Buy me a coffee
 
-- Binance smart chain (BEP20) address: `0x1aa0edEa497b107d85fab24Fa7b4844f9fDf307a`
+- Binance smart chain (BEP20) address: `0x55106477674F876FA91da79A009dC3A17dA81c32`
