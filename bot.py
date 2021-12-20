@@ -7,9 +7,9 @@ from pancake import *
 from binancesmarchain import *
 from web3 import Web3
 import json
-import config
+# import config
 import time
-import datetime
+# import datetime
 # import asyncio
 # from pythonpancakes import PancakeSwapAPI
 
@@ -28,8 +28,11 @@ sender_address = ''
 # Address of token to buy
 # busd: 0xe9e7cea3dedca5984780bafc599bd69add087d56
 tokenToBuyAddress = '0xe9e7cea3dedca5984780bafc599bd69add087d56'
-bnbAmountToBuy = 0.0001
-
+tokenToSellAddress = '0xe9e7cea3dedca5984780bafc599bd69add087d56'
+bnbAmountToBuy = 0.001
+bnbAmountToSell = 1000000000  # Note: bnbAmountToSell = 1000000000  = 1usd
+# 0.1171 BNB
+# 45.728 BUSD
 
 # config
 # IMPROTANT: gas is type of string default average is 5
@@ -66,8 +69,9 @@ print("BNB Balance:", read)
 
 # input("Input Contract to buy: ")
 tokenToBuy = web3.toChecksumAddress(tokenToBuyAddress)
+wbnb = web3.toChecksumAddress(wbnbAddress)
 
-spend = web3.toChecksumAddress(wbnbAddress)
+sellSpend = web3.toChecksumAddress(tokenToSellAddress) # token to sell
 
 # contract = web3.eth.contract(address=panRouterContractAddress, abi=panabi)
 contract = web3.eth.contract(address=panRouterContractAddress, abi=panabi)
@@ -83,7 +87,7 @@ start = time.time()
 def buyToken():
     pancakeswap2_txn = contract.functions.swapExactETHForTokens(
         0,
-        [spend, tokenToBuy],
+        [wbnb, tokenToBuy],
         sender_address,
         (int(time.time()) + 1000)
     ).buildTransaction({
@@ -98,20 +102,66 @@ def buyToken():
         pancakeswap2_txn, private_key=senderPrivateKey)
     tx_token = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
 
-    print('Result Tx:', web3.toHex(tx_token))
+    print('BUY Result Tx:', web3.toHex(tx_token))
     print('You can check your result here: ',
           'https://bscscan.com/tx/' + web3.toHex(tx_token))
 
 
-def loopBuy():
-    try:
-        buyToken()
-    except Exception as e:
-        print(datetime.datetime.now(), 'Error when buy, auto try again: ', e)
-        loopBuy()
+# def loopBuy():
+#     try:
+#         buyToken()
+#     except Exception as e:
+#         print(datetime.datetime.now(), 'Error when buy, auto try again: ', e)
+#         loopBuy()
 
 
-loopBuy()
+# loopBuy()
+
+
+# sell
+def sellToken():
+    #  estimate = web3.eth.estimateGas({'nonce': '0x0cc76CDA9fF1103bd58383598d62a4224b4A25C8', 'to':'0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 'from': '0x4da753b2eb74F9FBea9f15eC311F411FbC8cC308', 'value': 50})
+    # print("Gas estimate is: ", estimate)
+    tokenToSell = web3.toWei( bnbAmountToSell, 'gwei')
+
+    pancakeswap2_txn = contract.functions.swapExactTokensForETH(
+        tokenToSell,
+        0,
+        [sellSpend,  wbnb],
+        sender_address,
+        (int(time.time()) + 1000)
+    ).buildTransaction({
+        'from': sender_address,
+        # 'value':    web3.toWei(bnbAmountToBuy, 'ether'),
+        'gasPrice': web3.toWei(gasFeeWei, 'gwei'),
+        # 'gasLimit': '200000',
+        'nonce': nonce,
+    })
+    # print('pancakeswap2_txn', pancakeswap2_txn)
+
+    signed_txn = web3.eth.account.sign_transaction(
+        pancakeswap2_txn, private_key=senderPrivateKey)
+    tx_token = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+
+    print('SELL Result Tx:', web3.toHex(tx_token))
+    print('You can check your result here: ',
+          'https://bscscan.com/tx/' + web3.toHex(tx_token))
+
+
+sellToken()
+
+
+
+#  tai lieu 25p
+# bot pancake buy and sell 
+# https://www.youtube.com/watch?v=cSel-wyrTFI&ab_channel=XaynLaa
+# https://github.com/ZainAchak/DeFi_PanCakeSwapBot/blob/master/SellTokens.py
+# transaction: https://bscscan.com/tx/0x115801d3187e86a4dc55cc02646fc61289ee62392c0a2dab0e8303d0f222f090
+# pancake docs: https://docs.pancakeswap.finance/code/smart-contracts/pancakeswap-exchange/router-v2#swapexacttokensforethsupportingfeeontransfertokens
+# pancake bsc scan: https://bscscan.com/address/0x10ed43c718714eb63d5aa57b78b54704e256024e#writeContract
+# web3 docs: https://web3js.readthedocs.io/en/v1.5.2/web3-utils.html?highlight=wei#tobn
+# youtube list web3: https://www.youtube.com/watch?v=xFOb8sGNrEQ&list=PLbbtODcOYIoFs0PDlTdxpEsZiyDR2q9aA&index=7&ab_channel=EatTheBlocks
+
 
 
 ############################
